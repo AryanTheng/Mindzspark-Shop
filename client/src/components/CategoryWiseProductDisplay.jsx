@@ -19,6 +19,7 @@ const CategoryWiseProductDisplay = ({ id, name }) => {
     const fetchCategoryWiseProduct = async () => {
         try {
             setLoading(true)
+            console.log("requesting for Product to server")
             const response = await Axios({
                 ...SummaryApi.getProductByCategory,
                 data: {

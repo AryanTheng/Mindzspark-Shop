@@ -183,6 +183,7 @@ export const getProductDetails = async(request,response)=>{
         const { productId } = request.body 
 
         const product = await ProductModel.findOne({ _id : productId })
+        console.log("product:", product)
 
 
         return response.json({
@@ -277,10 +278,12 @@ export const searchProduct = async(request,response)=>{
         }
 
         const query = search ? {
-            $text : {
-                $search : search
-            }
+        $or: [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+        ]
         } : {}
+
 
         const skip = ( page - 1) * limit
 
@@ -288,6 +291,7 @@ export const searchProduct = async(request,response)=>{
             ProductModel.find(query).sort({ createdAt  : -1 }).skip(skip).limit(limit).populate('category subCategory'),
             ProductModel.countDocuments(query)
         ])
+        console.log("Response form search product")
 
         return response.json({
             message : "Product data",
@@ -307,5 +311,25 @@ export const searchProduct = async(request,response)=>{
             error : true,
             success : false
         })
+    }
+}
+
+export async function getAllProducts(req, res) {
+    try {
+        const products = await ProductModel.find();
+        return res.json({
+            message: "Products fetched successfully",
+            data: products,
+            error: false,
+            success: true
+        });
+    } catch (error) {
+        console.error("Error in getAllProducts:", error.message);
+        console.error("Error in getAllProducts:", error);
+        return res.status(500).json({
+            message: "Something went wrong",
+            error: true,
+            success: false
+        });
     }
 }

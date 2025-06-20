@@ -46,7 +46,7 @@ const UserMenu = ({close}) => {
         <div className='font-semibold'>My Account</div>
         <div className='text-sm flex items-center gap-2'>
           <span className='max-w-52 text-ellipsis line-clamp-1'>{user.name || user.mobile} <span className='text-medium text-red-600'>{user.role === "ADMIN" ? "(Admin)" : "" }</span></span>
-          <Link onClick={handleClose} to={"/dashboard/profile"} className='hover:text-primary-200'>
+          <Link onClick={handleClose} to={"/admin/profile"} className='hover:text-primary-200'>
             <HiOutlineExternalLink size={15}/>
           </Link>
         </div>
@@ -56,31 +56,31 @@ const UserMenu = ({close}) => {
         <div className='text-sm grid gap-1'>
             {
               isAdmin(user.role) && (
-                <Link onClick={handleClose} to={"/dashboard/category"} className='px-2 hover:bg-orange-200 py-1'>Category</Link>
+                <Link onClick={handleClose} to={"/admin/category"} className='px-2 hover:bg-orange-200 py-1'>Category</Link>
               )
             }
 
             {
               isAdmin(user.role) && (
-                <Link onClick={handleClose} to={"/dashboard/subcategory"} className='px-2 hover:bg-orange-200 py-1'>Sub Category</Link>
+                <Link onClick={handleClose} to={"/admin/subcategory"} className='px-2 hover:bg-orange-200 py-1'>Sub Category</Link>
               )
             }
 
             {
               isAdmin(user.role) && (
-                <Link onClick={handleClose} to={"/dashboard/upload-product"} className='px-2 hover:bg-orange-200 py-1'>Upload Product</Link>
+                <Link onClick={handleClose} to={"/admin/upload-product"} className='px-2 hover:bg-orange-200 py-1'>Upload Product</Link>
               )
             }
 
             {
               isAdmin(user.role) && (
-                <Link onClick={handleClose} to={"/dashboard/product"} className='px-2 hover:bg-orange-200 py-1'>Product</Link>
+                <Link onClick={handleClose} to={"/admin/product"} className='px-2 hover:bg-orange-200 py-1'>Product</Link>
               )
             }
 
-            <Link onClick={handleClose} to={"/dashboard/myorders"} className='px-2 hover:bg-orange-200 py-1'>My Orders</Link>
+            <Link onClick={handleClose} to={"/admin/myorders"} className='px-2 hover:bg-orange-200 py-1'>My Orders</Link>
 
-            <Link onClick={handleClose} to={"/dashboard/address"} className='px-2 hover:bg-orange-200 py-1'>Save Address</Link>
+            <Link onClick={handleClose} to={"/admin/address"} className='px-2 hover:bg-orange-200 py-1'>Save Address</Link>
 
             <button onClick={handleLogout} className='text-left px-2 hover:bg-orange-200 py-1'>Log Out</button>
 

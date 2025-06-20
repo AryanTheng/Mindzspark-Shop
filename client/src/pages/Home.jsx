@@ -1,9 +1,8 @@
-import React from 'react'
 import banner from '../assets/banner.jpg'
 import bannerMobile from '../assets/banner-mobile.jpg'
 import { useSelector } from 'react-redux'
 import { valideURLConvert } from '../utils/valideURLConvert'
-import {Link, useNavigate} from 'react-router-dom'
+import { useNavigate} from 'react-router-dom'
 import CategoryWiseProductDisplay from '../components/CategoryWiseProductDisplay'
 
 const Home = () => {
@@ -13,6 +12,7 @@ const Home = () => {
   const navigate = useNavigate()
 
   const handleRedirectProductListpage = (id,cat)=>{
+      console("working")
       console.log(id,cat)
       const subcategory = subCategoryData.find(sub =>{
         const filterData = sub.category.some(c => {

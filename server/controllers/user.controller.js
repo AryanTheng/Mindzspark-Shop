@@ -30,24 +30,29 @@ export async function registerUserController(request,response){
                 success : false
             })
         }
-
+        
+        // using bcryptjs for hashing the password
         const salt = await bcryptjs.genSalt(10)
         const hashPassword = await bcryptjs.hash(password,salt)
 
+        // payload => it's like a bomb which is send in response
         const payload = {
             name,
             email,
             password : hashPassword
         }
 
+        // Updating the database
         const newUser = new UserModel(payload)
         const save = await newUser.save()
 
+        // email verification url 
         const VerifyEmailUrl = `${process.env.FRONTEND_URL}/verify-email?code=${save?._id}`
+
 
         const verifyEmail = await sendEmail({
             sendTo : email,
-            subject : "Verify email from binkeyit",
+            subject : "Verify email from MindzSpark",
             html : verifyEmailTemplate({
                 name,
                 url : VerifyEmailUrl
@@ -518,3 +523,24 @@ export async function userDetails(request,response){
         })
     }
 }
+
+export async function getAllUsers(req, res) {
+    try {
+        const users = await UserModel.find();
+        return res.json({
+            message: "Users fetched successfully",
+            data: users,
+            error: false,
+            success: true
+        });
+    } catch (error) {
+        console.error("Error in getAllUsers:", error.message);
+        console.error("Error in getAllUsers:", error);
+        return res.status(500).json({
+            message: "Something went wrong",
+            error: true,
+            success: false
+        });
+    }
+}
+
