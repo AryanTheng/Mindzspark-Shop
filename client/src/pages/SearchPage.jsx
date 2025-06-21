@@ -20,6 +20,7 @@ const SearchPage = () => {
   const fetchData = async() => {
     try {
       setLoading(true)
+      console.log("Searching")
         const response = await Axios({
             ...SummaryApi.searchProduct,
             data : {

@@ -23,13 +23,17 @@ app.use(cors({
 }))
 app.use(express.json())
 app.use(cookieParser())
-app.use(morgan('combined'))
+// app.use(morgan('combined')) // Morgan is an HTTP request logger middleware for Node.js
+
+// helmet avoid webapps getting hacked easily
 app.use(helmet({
     crossOriginResourcePolicy : false
 }))
 
+// || => this a OR condition
 const PORT = 8080 || process.env.PORT 
 
+// Starting the server.
 app.get("/",(request,response)=>{
     ///server to client
     response.json({
@@ -37,6 +41,7 @@ app.get("/",(request,response)=>{
     })
 })
 
+// Routes for handeling client requests
 app.use('/api/user',userRouter)
 app.use("/api/category",categoryRouter)
 app.use("/api/file",uploadRouter)
@@ -46,6 +51,7 @@ app.use("/api/cart",cartRouter)
 app.use("/api/address",addressRouter)
 app.use('/api/order',orderRouter)
 
+// connecting to database for database operations
 connectDB().then(()=>{
     app.listen(PORT,()=>{
         console.log("Server is running",PORT)

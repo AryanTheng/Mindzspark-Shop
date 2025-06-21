@@ -67,17 +67,17 @@ const Header = () => {
                                     <Link to={"/"} className='h-full flex justify-center items-center'>
                                         <img 
                                             src={logo}
-                                            width={170}
-                                            height={60}
+                                            // width={170}
+                                            // height={60}
                                             alt='logo'
-                                            className='hidden lg:block'
+                                            className='hidden lg:block h-20 w-20'
                                         />
                                         <img 
                                             src={logo}
                                             width={120}
                                             height={60}
                                             alt='logo'
-                                            className='lg:hidden'
+                                            className='lg:hidden h-15 w-15'
                                         />
                                     </Link>
                                 </div>
