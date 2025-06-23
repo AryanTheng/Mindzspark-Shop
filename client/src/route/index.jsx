@@ -23,6 +23,20 @@ import CartMobile from "../pages/CartMobile";
 import CheckoutPage from "../pages/CheckoutPage";
 import Success from "../pages/Success";
 import Cancel from "../pages/Cancel";
+import ContactUs from '../pages/ContactUs';
+import AboutUs from '../pages/AboutUs';
+import Careers from '../pages/Careers';
+import MindzsparkStories from '../pages/MindzsparkStories';
+import Press from '../pages/Press';
+import Payments from '../pages/Payments';
+import Shipping from '../pages/Shipping';
+import CancellationReturns from '../pages/CancellationReturns';
+import TermsOfUse from '../pages/TermsOfUse';
+import Security from '../pages/Security';
+import Privacy from '../pages/Privacy';
+import Sitemap from '../pages/Sitemap';
+import GrievanceRedressal from '../pages/GrievanceRedressal';
+import EPRCompliance from '../pages/EPRCompliance';
 
 const router = createBrowserRouter([
     {
@@ -123,6 +137,62 @@ const router = createBrowserRouter([
             {
                 path : 'cancel',
                 element : <Cancel/>
+            },
+            {
+                path : "contact-us",
+                element : <ContactUs/>
+            },
+            {
+                path : "about-us",
+                element : <AboutUs/>
+            },
+            {
+                path : "careers",
+                element : <Careers/>
+            },
+            {
+                path : "mindzspark-stories",
+                element : <MindzsparkStories/>
+            },
+            {
+                path : "press",
+                element : <Press/>
+            },
+            {
+                path : "payments",
+                element : <Payments/>
+            },
+            {
+                path : "shipping",
+                element : <Shipping/>
+            },
+            {
+                path : "cancellation-returns",
+                element : <CancellationReturns/>
+            },
+            {
+                path : "terms-of-use",
+                element : <TermsOfUse/>
+            },
+            {
+                path : "security",
+                element : <Security/>
+            },
+            {
+                path : "privacy",
+                element : <Privacy/>
+            },
+            {
+                path : "sitemap",
+                element : <Sitemap/>
+            },
+            {
+                path : "grievance-redressal",
+                element : <GrievanceRedressal/>
+            },
+            {
+                path : "epr-compliance",
+                element : <EPRCompliance/>
             }
         ]
     }
