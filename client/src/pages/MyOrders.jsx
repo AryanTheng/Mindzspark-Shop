@@ -1,16 +1,42 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import NoData from '../components/NoData'
+import PopupBanner from '../components/CofirmBox'
+import { useNavigate } from 'react-router-dom'
+import AxiosToastError from '../utils/AxiosToastError'
 
-const MyOrders = () => {
+const MyOrders = (props) => {
   const orders = useSelector(state => state.orders.order)
+  const [showAuthPopup, setShowAuthPopup] = useState(false)
+  const navigate = useNavigate()
 
   console.log("order Items",orders)
+
+  const fetchOrders = async () => {
+    try {
+      // ... existing code ...
+    } catch (error) {
+      if (error?.response?.data?.message === 'Provide token') {
+        setShowAuthPopup(true)
+      }
+      AxiosToastError(error)
+    }
+  }
+
   return (
-    <div>
-      <div className='bg-white shadow-md p-3 font-semibold'>
-        <h1>Order</h1>
-      </div>
+    <>
+      {showAuthPopup && (
+        <PopupBanner
+          message="Please login or register to view your orders."
+          onLogin={() => { setShowAuthPopup(false); navigate('/login') }}
+          onRegister={() => { setShowAuthPopup(false); navigate('/register') }}
+          onClose={() => setShowAuthPopup(false)}
+        />
+      )}
+      <div>
+        <div className='bg-white shadow-md p-3 font-semibold'>
+          <h1>Order</h1>
+        </div>
         {
           !orders[0] && (
             <NoData/>
@@ -32,7 +58,8 @@ const MyOrders = () => {
             )
           })
         }
-    </div>
+      </div>
+    </>
   )
 }
 

@@ -9,6 +9,7 @@ import CofirmBox from '../components/CofirmBox'
 import toast from 'react-hot-toast'
 import AxiosToastError from '../utils/AxiosToastError'
 import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 const CategoryPage = () => {
     const [openUploadCategory,setOpenUploadCategory] = useState(false)
@@ -23,6 +24,8 @@ const CategoryPage = () => {
     const [deleteCategory,setDeleteCategory] = useState({
         _id : ""
     })
+    const [deleteError, setDeleteError] = useState("");
+    const navigate = useNavigate();
     // const allCategory = useSelector(state => state.product.allCategory)
 
 
@@ -58,15 +61,15 @@ const CategoryPage = () => {
                 ...SummaryApi.deleteCategory,
                 data : deleteCategory
             })
-
             const { data : responseData } = response
-
             if(responseData.success){
                 toast.success(responseData.message)
                 fetchCategory()
                 setOpenConfirmBoxDelete(false)
+                setDeleteError("");
             }
         } catch (error) {
+            setDeleteError(error?.response?.data?.message || "Unknown error");
             AxiosToastError(error)
         }
     }
@@ -133,7 +136,14 @@ const CategoryPage = () => {
 
         {
            openConfimBoxDelete && (
-            <CofirmBox close={()=>setOpenConfirmBoxDelete(false)} cancel={()=>setOpenConfirmBoxDelete(false)} confirm={handleDeleteCategory}/>
+            <CofirmBox 
+              close={()=>{setOpenConfirmBoxDelete(false);setDeleteError("")}} 
+              cancel={()=>setOpenConfirmBoxDelete(false)} 
+              confirm={handleDeleteCategory} 
+              errorMessage={deleteError}
+              onLogin={()=>{setOpenConfirmBoxDelete(false);navigate('/login')}}
+              onRegister={()=>{setOpenConfirmBoxDelete(false);navigate('/register')}}
+            />
            ) 
         }
     </section>

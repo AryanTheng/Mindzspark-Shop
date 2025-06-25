@@ -160,6 +160,38 @@ const SummaryApi = {
     verifyRazorpayPayment : {
         url : '/api/order/verify-razorpay-payment',
         method : 'post'
+    },
+    getReviews: {
+        url: '/api/review/get',
+        method: 'get'
+    },
+    addReview: {
+        url: '/api/review/add',
+        method: 'post'
+    },
+    addToWishlist: {
+        url: '/api/user/wishlist/add',
+        method: 'post'
+    },
+    removeFromWishlist: {
+        url: '/api/user/wishlist/remove',
+        method: 'post'
+    },
+    getWishlist: {
+        url: '/api/user/wishlist',
+        method: 'get'
+    },
+    addQuestion: {
+        url: '/api/question/add',
+        method: 'post'
+    },
+    getQuestions: {
+        url: '/api/question/get',
+        method: 'get'
+    },
+    addReply: {
+        url: '/api/question/reply',
+        method: 'post'
     }
 }
 

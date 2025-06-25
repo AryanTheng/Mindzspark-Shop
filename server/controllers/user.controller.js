@@ -544,3 +544,109 @@ export async function getAllUsers(req, res) {
     }
 }
 
+// Wishlist: Add to wishlist
+export async function addToWishlist(request, response) {
+    try {
+        const userId = request.userId;
+        const { productId } = request.body;
+        if (!productId) {
+            return response.status(400).json({
+                message: "Product ID is required",
+                error: true,
+                success: false
+            });
+        }
+        const user = await UserModel.findById(userId);
+        if (!user) {
+            return response.status(404).json({
+                message: "User not found",
+                error: true,
+                success: false
+            });
+        }
+        if (user.wishlist.includes(productId)) {
+            return response.json({
+                message: "Product already in wishlist",
+                error: false,
+                success: true
+            });
+        }
+        user.wishlist.push(productId);
+        await user.save();
+        return response.json({
+            message: "Product added to wishlist",
+            error: false,
+            success: true
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+}
+
+// Wishlist: Remove from wishlist
+export async function removeFromWishlist(request, response) {
+    try {
+        const userId = request.userId;
+        const { productId } = request.body;
+        if (!productId) {
+            return response.status(400).json({
+                message: "Product ID is required",
+                error: true,
+                success: false
+            });
+        }
+        const user = await UserModel.findById(userId);
+        if (!user) {
+            return response.status(404).json({
+                message: "User not found",
+                error: true,
+                success: false
+            });
+        }
+        user.wishlist = user.wishlist.filter(id => id.toString() !== productId);
+        await user.save();
+        return response.json({
+            message: "Product removed from wishlist",
+            error: false,
+            success: true
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+}
+
+// Wishlist: Get wishlist
+export async function getWishlist(request, response) {
+    try {
+        const userId = request.userId;
+        const user = await UserModel.findById(userId).populate('wishlist');
+        if (!user) {
+            return response.status(404).json({
+                message: "User not found",
+                error: true,
+                success: false
+            });
+        }
+        return response.json({
+            message: "Wishlist fetched successfully",
+            error: false,
+            success: true,
+            data: user.wishlist
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+}
+

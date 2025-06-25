@@ -268,7 +268,7 @@ export const deleteProductDetails = async(request,response)=>{
 //search product
 export const searchProduct = async(request,response)=>{
     try {
-        let { search, page , limit } = request.body 
+        let { search, page , limit, sort, minPrice, maxPrice, category, subCategory, discount, inStock, newArrivals } = request.body 
 
         if(!page){
             page = 1
@@ -277,18 +277,49 @@ export const searchProduct = async(request,response)=>{
             limit  = 10
         }
 
-        const query = search ? {
-        $or: [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
-        ]
-        } : {}
+        // Build query object
+        const query = {};
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+            ];
+        }
+        if (category) {
+            query.category = { $in: [category] };
+        }
+        if (subCategory) {
+            query.subCategory = { $in: [subCategory] };
+        }
+        if (minPrice) {
+            query.price = { ...query.price, $gte: Number(minPrice) };
+        }
+        if (maxPrice) {
+            query.price = { ...query.price, $lte: Number(maxPrice) };
+        }
+        if (discount) {
+            query.discount = { $gte: Number(discount) };
+        }
+        if (inStock) {
+            query.stock = { $gt: 0 };
+        }
+        if (newArrivals) {
+            // Example: products created in the last 30 days
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            query.createdAt = { $gte: thirtyDaysAgo };
+        }
 
+        // Sorting logic
+        let sortOption = { createdAt: -1 };
+        if (sort === 'priceLowToHigh') sortOption = { price: 1 };
+        if (sort === 'priceHighToLow') sortOption = { price: -1 };
+        if (sort === 'newest') sortOption = { createdAt: -1 };
 
         const skip = ( page - 1) * limit
 
         const [data,dataCount] = await Promise.all([
-            ProductModel.find(query).sort({ createdAt  : -1 }).skip(skip).limit(limit).populate('category subCategory'),
+            ProductModel.find(query).sort(sortOption).skip(skip).limit(limit).populate('category subCategory'),
             ProductModel.countDocuments(query)
         ])
         console.log("Response form search product")

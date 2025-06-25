@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { forgotPasswordController, loginController, logoutController, refreshToken, registerUserController, resetpassword, updateUserDetails, uploadAvatar, userDetails, verifyEmailController, verifyForgotPasswordOtp, getAllUsers } from '../controllers/user.controller.js'
+import { forgotPasswordController, loginController, logoutController, refreshToken, registerUserController, resetpassword, updateUserDetails, uploadAvatar, userDetails, verifyEmailController, verifyForgotPasswordOtp, getAllUsers, addToWishlist, removeFromWishlist, getWishlist } from '../controllers/user.controller.js'
 import auth from '../middleware/auth.js'
 import upload from '../middleware/multer.js'
 
@@ -19,7 +19,8 @@ userRouter.get('/user-details',auth,userDetails) // get method to get user detai
 
 userRouter.get('/get-all-users', getAllUsers)
 
-
-
+userRouter.post('/wishlist/add', auth, addToWishlist)
+userRouter.post('/wishlist/remove', auth, removeFromWishlist)
+userRouter.get('/wishlist', auth, getWishlist)
 
 export default userRouter

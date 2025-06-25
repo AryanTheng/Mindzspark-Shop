@@ -7,14 +7,18 @@ import AxiosToastError from '../utils/AxiosToastError'
 import Loading from './Loading'
 import { useSelector } from 'react-redux'
 import { FaMinus, FaPlus } from "react-icons/fa6";
+import PopupBanner from './CofirmBox';
+import { useNavigate } from 'react-router-dom';
 
-const AddToCartButton = ({ data }) => {
+const AddToCartButton = ({ data, buttonClassName = '' }) => {
     const { fetchCartItem, updateCartItem, deleteCartItem } = useGlobalContext()
     const [loading, setLoading] = useState(false)
     const cartItem = useSelector(state => state.cartItem.cart)
     const [isAvailableCart, setIsAvailableCart] = useState(false)
     const [qty, setQty] = useState(0)
     const [cartItemDetails,setCartItemsDetails] = useState()
+    const [showAuthPopup, setShowAuthPopup] = useState(false);
+    const navigate = useNavigate();
 
     const handleADDTocart = async (e) => {
         e.preventDefault()
@@ -39,6 +43,9 @@ const AddToCartButton = ({ data }) => {
                 }
             }
         } catch (error) {
+            if (error?.response?.data?.message === 'Provide token') {
+                setShowAuthPopup(true);
+            }
             AxiosToastError(error)
         } finally {
             setLoading(false)
@@ -82,24 +89,34 @@ const AddToCartButton = ({ data }) => {
         }
     }
     return (
-        <div className='w-full max-w-[150px]'>
-            {
-                isAvailableCart ? (
-                    <div className='flex w-full h-full'>
-                        <button onClick={decreaseQty} className='bg-green-600 hover:bg-green-700 text-white flex-1 w-full p-1 rounded flex items-center justify-center'><FaMinus /></button>
+        <>
+            {showAuthPopup && (
+                <PopupBanner
+                    message="You need to login or register to continue."
+                    onLogin={() => { setShowAuthPopup(false); navigate('/login'); }}
+                    onRegister={() => { setShowAuthPopup(false); navigate('/register'); }}
+                    onClose={() => setShowAuthPopup(false)}
+                />
+            )}
+            <div className='w-full max-w-[150px]'>
+                {
+                    isAvailableCart ? (
+                        <div className='flex w-full h-full'>
+                            <button onClick={decreaseQty} className='bg-green-600 hover:bg-green-700 text-white flex-1 w-full p-1 rounded flex items-center justify-center'><FaMinus /></button>
 
-                        <p className='flex-1 w-full font-semibold px-1 flex items-center justify-center'>{qty}</p>
+                            <p className='flex-1 w-full font-semibold px-1 flex items-center justify-center'>{qty}</p>
 
-                        <button onClick={increaseQty} className='bg-green-600 hover:bg-green-700 text-white flex-1 w-full p-1 rounded flex items-center justify-center'><FaPlus /></button>
-                    </div>
-                ) : (
-                    <button onClick={handleADDTocart} className='bg-green-600 hover:bg-green-700 text-white px-2 lg:px-4 py-1 rounded'>
-                        {loading ? <Loading /> : "Add"}
-                    </button>
-                )
-            }
+                            <button onClick={increaseQty} className='bg-green-600 hover:bg-green-700 text-white flex-1 w-full p-1 rounded flex items-center justify-center'><FaPlus /></button>
+                        </div>
+                    ) : (
+                        <button onClick={handleADDTocart} className={`bg-green-600 hover:bg-green-700 text-white px-2 lg:px-4 py-1 rounded ${buttonClassName}`}>
+                            {loading ? <Loading /> : "Add"}
+                        </button>
+                    )
+                }
 
-        </div>
+            </div>
+        </>
     )
 }
 

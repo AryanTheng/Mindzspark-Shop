@@ -9,12 +9,14 @@ import AddToCartButton from './AddToCartButton'
 import { pricewithDiscount } from '../utils/PriceWithDiscount'
 import imageEmpty from '../assets/empty_cart.webp'
 import toast from 'react-hot-toast'
+import PopupBanner from './CofirmBox'
 
 const DisplayCartItem = ({close}) => {
     const { notDiscountTotalPrice, totalPrice ,totalQty} = useGlobalContext()
     const cartItem  = useSelector(state => state.cartItem.cart)
     const user = useSelector(state => state.user)
     const navigate = useNavigate()
+    const [showAuthPopup, setShowAuthPopup] = React.useState(false);
 
     const redirectToCheckoutPage = ()=>{
         if(user?._id){
@@ -24,7 +26,7 @@ const DisplayCartItem = ({close}) => {
             }
             return
         }
-        toast("Please Login")
+        setShowAuthPopup(true);
     }
   return (
     <section className='bg-neutral-900 fixed top-0 bottom-0 right-0 left-0 bg-opacity-70 z-50'>
@@ -124,6 +126,14 @@ const DisplayCartItem = ({close}) => {
             }
             
         </div>
+        {showAuthPopup && (
+          <PopupBanner
+            message="Please login or register to view your cart and proceed to checkout."
+            onLogin={() => { setShowAuthPopup(false); navigate('/login'); }}
+            onRegister={() => { setShowAuthPopup(false); navigate('/register'); }}
+            onClose={() => setShowAuthPopup(false)}
+          />
+        )}
     </section>
   )
 }

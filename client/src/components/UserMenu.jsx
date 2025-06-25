@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import Divider from './Divider'
@@ -14,6 +14,23 @@ const UserMenu = ({close}) => {
    const user = useSelector((state)=> state.user)
    const dispatch = useDispatch()
    const navigate = useNavigate()
+   const [wishlistCount, setWishlistCount] = useState(0);
+
+   useEffect(() => {
+     const fetchWishlist = async () => {
+       try {
+         const response = await Axios({
+           ...SummaryApi.getWishlist,
+         });
+         if (response.data.success) {
+           setWishlistCount(response.data.data?.length || 0);
+         }
+       } catch (error) {
+         setWishlistCount(0);
+       }
+     };
+     fetchWishlist();
+   }, []);
 
    const handleLogout = async()=>{
         try {
@@ -79,6 +96,12 @@ const UserMenu = ({close}) => {
             }
 
             <Link onClick={handleClose} to={"/admin/myorders"} className='px-2 hover:bg-orange-200 py-1'>My Orders</Link>
+
+            <Link onClick={handleClose} to={"/wishlist"} className='px-2 hover:bg-orange-200 py-1 flex items-center gap-2'>My Wishlist
+              {wishlistCount > 0 && (
+                <span className="bg-red-500 text-white rounded-full px-2 py-0.5 text-xs">{wishlistCount}</span>
+              )}
+            </Link>
 
             <Link onClick={handleClose} to={"/admin/address"} className='px-2 hover:bg-orange-200 py-1'>Save Address</Link>
 

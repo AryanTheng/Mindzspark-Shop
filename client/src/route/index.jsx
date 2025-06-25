@@ -37,6 +37,8 @@ import Privacy from '../pages/Privacy';
 import Sitemap from '../pages/Sitemap';
 import GrievanceRedressal from '../pages/GrievanceRedressal';
 import EPRCompliance from '../pages/EPRCompliance';
+import Wishlist from '../pages/Wishlist';
+import ComparePage from '../pages/ComparePage';
 
 const router = createBrowserRouter([
     {
@@ -193,6 +195,14 @@ const router = createBrowserRouter([
             {
                 path : "epr-compliance",
                 element : <EPRCompliance/>
+            },
+            {
+                path : "wishlist",
+                element : <Wishlist/>
+            },
+            {
+                path : "compare",
+                element : <ComparePage/>
             }
         ]
     }
