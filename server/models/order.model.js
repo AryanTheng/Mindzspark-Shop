@@ -30,6 +30,14 @@ const orderSchema = new mongoose.Schema({
         type : mongoose.Schema.ObjectId,
         ref : 'address'
     },
+    delivery_address_details: {
+        address_line: String,
+        city: String,
+        state: String,
+        pincode: String,
+        country: String,
+        mobile: String,
+    },
     subTotalAmt : {
         type : Number,
         default : 0
@@ -41,7 +49,14 @@ const orderSchema = new mongoose.Schema({
     invoice_receipt : {
         type : String,
         default : ""
-    }
+    },
+    statusUpdates: [
+        {
+            title: { type: String },
+            date: { type: String },
+            details: [String]
+        }
+    ]
 },{
     timestamps : true
 })

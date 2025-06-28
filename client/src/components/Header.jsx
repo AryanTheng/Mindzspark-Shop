@@ -10,7 +10,6 @@ import { GoTriangleDown, GoTriangleUp  } from "react-icons/go";
 import UserMenu from './UserMenu';
 import { DisplayPriceInRupees } from '../utils/DisplayPriceInRupees';
 import { useGlobalContext } from '../provider/GlobalProvider';
-import DisplayCartItem from './DisplayCartItem';
 import { FaUserLarge } from "react-icons/fa6";
 
 const Header = () => {
@@ -24,7 +23,6 @@ const Header = () => {
     // const [totalPrice,setTotalPrice] = useState(0)
     // const [totalQty,setTotalQty] = useState(0)
     const { totalPrice, totalQty} = useGlobalContext()
-    const [openCartSection,setOpenCartSection] = useState(false)
  
     const redirectToLoginPage = ()=>{
         navigate("/login")
@@ -126,7 +124,7 @@ const Header = () => {
                                                 <button onClick={redirectToLoginPage} className='text-lg px-2'>Login</button>
                                             )
                                         }
-                                        <button onClick={()=>setOpenCartSection(true)} className='flex items-center gap-2 bg-green-800 hover:bg-green-700 px-3 py-2 rounded text-white'>
+                                        <button onClick={()=>navigate('/cart')} className='flex items-center gap-2 bg-green-800 hover:bg-green-700 px-3 py-2 rounded text-white'>
                                             {/**add to card icons */}
                                             <div className='animate-bounce'>
                                                 <BsCart4 size={26}/>
@@ -153,12 +151,6 @@ const Header = () => {
         <div className='container mx-auto px-2 lg:hidden'>
             <Search/>
         </div>
-
-        {
-            openCartSection && (
-                <DisplayCartItem close={()=>setOpenCartSection(false)}/>
-            )
-        }
     </header>
   )
 }

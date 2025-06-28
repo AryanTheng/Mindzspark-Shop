@@ -43,10 +43,16 @@ const AddToCartButton = ({ data, buttonClassName = '' }) => {
                 }
             }
         } catch (error) {
-            if (error?.response?.data?.message === 'Provide token') {
+            const msg = error?.response?.data?.message;
+            if (msg === 'Provide token') {
                 setShowAuthPopup(true);
+            } else if (msg === 'Item already in cart') {
+                toast.error('This item is already in your cart. Use the + button to increase quantity.');
+            } else if (msg === 'Provide productId') {
+                toast.error('Product information is missing. Please try again.');
+            } else {
+                AxiosToastError(error)
             }
-            AxiosToastError(error)
         } finally {
             setLoading(false)
         }
@@ -109,7 +115,7 @@ const AddToCartButton = ({ data, buttonClassName = '' }) => {
                             <button onClick={increaseQty} className='bg-green-600 hover:bg-green-700 text-white flex-1 w-full p-1 rounded flex items-center justify-center'><FaPlus /></button>
                         </div>
                     ) : (
-                        <button onClick={handleADDTocart} className={`bg-green-600 hover:bg-green-700 text-white px-2 lg:px-4 py-1 rounded ${buttonClassName}`}>
+                        <button onClick={handleADDTocart} className={`bg-green-600 hover:bg-green-700 text-white px-2 lg:px-4 py-1 rounded ${buttonClassName}`} disabled={isAvailableCart || loading}>
                             {loading ? <Loading /> : "Add"}
                         </button>
                     )

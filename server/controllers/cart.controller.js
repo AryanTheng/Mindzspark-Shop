@@ -142,3 +142,56 @@ export const deleteCartItemQtyController = async(request,response)=>{
         })
     }
 }
+
+// Save for Later controllers
+export const addToSaveForLaterController = async (request, response) => {
+    try {
+        const userId = request.userId;
+        const { productId } = request.body;
+        if (!productId) {
+            return response.status(400).json({ message: 'Provide productId', error: true, success: false });
+        }
+        // Create a cartProduct for save for later (quantity 1)
+        const cartProduct = new CartProductModel({
+            quantity: 1,
+            userId: userId,
+            productId: productId
+        });
+        const saved = await cartProduct.save();
+        // Add to user's saveForLater
+        await UserModel.updateOne({ _id: userId }, { $push: { saveForLater: saved._id } });
+        return response.json({ data: saved, message: 'Saved for later', error: false, success: true });
+    } catch (error) {
+        return response.status(500).json({ message: error.message || error, error: true, success: false });
+    }
+};
+
+export const removeFromSaveForLaterController = async (request, response) => {
+    try {
+        const userId = request.userId;
+        const { cartProductId } = request.body;
+        if (!cartProductId) {
+            return response.status(400).json({ message: 'Provide cartProductId', error: true, success: false });
+        }
+        // Remove from user's saveForLater
+        await UserModel.updateOne({ _id: userId }, { $pull: { saveForLater: cartProductId } });
+        // Optionally, delete the cartProduct document
+        await CartProductModel.deleteOne({ _id: cartProductId, userId });
+        return response.json({ message: 'Removed from save for later', error: false, success: true });
+    } catch (error) {
+        return response.status(500).json({ message: error.message || error, error: true, success: false });
+    }
+};
+
+export const getSaveForLaterController = async (request, response) => {
+    try {
+        const userId = request.userId;
+        const user = await UserModel.findById(userId).populate({
+            path: 'saveForLater',
+            populate: { path: 'productId' }
+        });
+        return response.json({ data: user.saveForLater, error: false, success: true });
+    } catch (error) {
+        return response.status(500).json({ message: error.message || error, error: true, success: false });
+    }
+};

@@ -192,6 +192,26 @@ const SummaryApi = {
     addReply: {
         url: '/api/question/reply',
         method: 'post'
+    },
+    addToSaveForLater: {
+        url: '/api/cart/save-for-later/add',
+        method: 'post'
+    },
+    removeFromSaveForLater: {
+        url: '/api/cart/save-for-later/remove',
+        method: 'delete'
+    },
+    getSaveForLater: {
+        url: '/api/cart/save-for-later/get',
+        method: 'get'
+    },
+    getAllOrders: {
+        url: '/api/order/all-orders',
+        method: 'get'
+    },
+    getTodayOrders: {
+        url: '/api/order/today-orders',
+        method: 'get'
     }
 }
 

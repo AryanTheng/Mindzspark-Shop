@@ -75,6 +75,12 @@ const userSchema = new mongoose.Schema({
             type: mongoose.Schema.ObjectId,
             ref: 'product',
         }
+    ],
+    saveForLater: [
+        {
+            type: mongoose.Schema.ObjectId,
+            ref: 'cartProduct',
+        }
     ]
 },{
     timestamps : true

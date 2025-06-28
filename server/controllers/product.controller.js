@@ -1,4 +1,5 @@
 import ProductModel from "../models/product.model.js";
+import mongoose from 'mongoose';
 
 export const createProductController = async(request,response)=>{
     try {
@@ -13,6 +14,7 @@ export const createProductController = async(request,response)=>{
             discount,
             description,
             more_details,
+            seller
         } = request.body 
 
         if(!name || !image[0] || !category[0] || !subCategory[0] || !unit || !price || !description ){
@@ -34,6 +36,7 @@ export const createProductController = async(request,response)=>{
             discount,
             description,
             more_details,
+            seller
         })
         const saveProduct = await product.save()
 
@@ -289,7 +292,14 @@ export const searchProduct = async(request,response)=>{
             query.category = { $in: [category] };
         }
         if (subCategory) {
-            query.subCategory = { $in: [subCategory] };
+            if (Array.isArray(subCategory)) {
+                const validSubCats = subCategory.filter(id => mongoose.Types.ObjectId.isValid(id));
+                if (validSubCats.length > 0) {
+                    query.subCategory = { $in: validSubCats };
+                }
+            } else if (mongoose.Types.ObjectId.isValid(subCategory)) {
+                query.subCategory = { $in: [subCategory] };
+            }
         }
         if (minPrice) {
             query.price = { ...query.price, $gte: Number(minPrice) };

@@ -3,6 +3,9 @@ import OrderModel from "../models/order.model.js";
 import UserModel from "../models/user.model.js";
 import mongoose from "mongoose";
 import razorpay from '../config/razorpay.js';
+import dayjs from 'dayjs';
+import crypto from 'crypto';
+import AddressModel from '../models/address.model.js';
 
 export async function CashOnDeliveryOrderController(request,response){
     try {
@@ -10,6 +13,19 @@ export async function CashOnDeliveryOrderController(request,response){
         const userId = request.userId // auth middleware 
         const { list_items, totalAmt, addressId,subTotalAmt } = request.body 
 
+        // Fetch full address details
+        const addressDoc = await AddressModel.findById(addressId);
+        const addressDetails = addressDoc ? {
+          address_line: addressDoc.address_line,
+          city: addressDoc.city,
+          state: addressDoc.state,
+          pincode: addressDoc.pincode,
+          country: addressDoc.country,
+          mobile: addressDoc.mobile?.toString() || ''
+        } : {};
+
+        const now = dayjs().format('ddd, D MMM YY');
+        const nowFull = dayjs().format('ddd, D MMM YY - h:mma');
         const payload = list_items.map(el => {
             return({
                 userId : userId,
@@ -22,8 +38,19 @@ export async function CashOnDeliveryOrderController(request,response){
                 paymentId : "",
                 payment_status : "CASH ON DELIVERY",
                 delivery_address : addressId ,
+                delivery_address_details: addressDetails,
                 subTotalAmt  : subTotalAmt,
                 totalAmt  :  totalAmt,
+                statusUpdates: [
+                  {
+                    title: 'Order Confirmed',
+                    date: now,
+                    details: [
+                      'Your Order has been placed.',
+                      nowFull
+                    ]
+                  }
+                ]
             })
         })
 
@@ -57,6 +84,17 @@ export async function createRazorpayOrder(req, res){
             return res.status(400).json({ success:false, message:"Missing required fields"});
         }
 
+        // Fetch full address details
+        const addressDoc = await AddressModel.findById(addressId);
+        const addressDetails = addressDoc ? {
+          address_line: addressDoc.address_line,
+          city: addressDoc.city,
+          state: addressDoc.state,
+          pincode: addressDoc.pincode,
+          country: addressDoc.country,
+          mobile: addressDoc.mobile?.toString() || ''
+        } : {};
+
         const options = {
             amount: totalAmt*100,
             currency,
@@ -64,6 +102,8 @@ export async function createRazorpayOrder(req, res){
             notes
         }
         const order = await razorpay.orders.create(options);
+        const now = dayjs().format('ddd, D MMM YY');
+        const nowFull = dayjs().format('ddd, D MMM YY - h:mma');
         const payload = list_items.map(el => {
             return({
                 userId : userId,
@@ -76,8 +116,19 @@ export async function createRazorpayOrder(req, res){
                 paymentId : "",
                 payment_status : "ORDER CREATED AT RAZORPAY",
                 delivery_address : addressId ,
+                delivery_address_details: addressDetails,
                 subTotalAmt  : subTotalAmt,
                 totalAmt  :  totalAmt,
+                statusUpdates: [
+                  {
+                    title: 'Order Confirmed',
+                    date: now,
+                    details: [
+                      'Your Order has been placed.',
+                      nowFull
+                    ]
+                  }
+                ]
             })
         })
         const generatedOrder = await OrderModel.insertMany(payload)
@@ -171,4 +222,89 @@ export async function getOrderDetailsController(request,response){
             success : false
         })
     }
+}
+
+export async function addOrderStatusUpdate(req, res) {
+  try {
+    const { orderId, title, details } = req.body;
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' });
+    const update = {
+      title,
+      date: dateStr,
+      details: Array.isArray(details) ? details : [details]
+    };
+    const order = await OrderModel.findOneAndUpdate(
+      { _id: orderId },
+      { $push: { statusUpdates: update } },
+      { new: true }
+    );
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+    res.json({ success: true, order });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function backfillOrderDeliveryAddresses(req, res) {
+  try {
+    const orders = await OrderModel.find({ delivery_address: { $exists: true }, $or: [ { delivery_address_details: { $exists: false } }, { delivery_address_details: null } ] });
+    let updatedCount = 0;
+    for (const order of orders) {
+      if (!order.delivery_address) continue;
+      const addressDoc = await AddressModel.findById(order.delivery_address);
+      if (!addressDoc) continue;
+      order.delivery_address_details = {
+        address_line: addressDoc.address_line,
+        city: addressDoc.city,
+        state: addressDoc.state,
+        pincode: addressDoc.pincode,
+        country: addressDoc.country,
+        mobile: addressDoc.mobile?.toString() || ''
+      };
+      await order.save();
+      updatedCount++;
+    }
+    res.json({ success: true, updated: updatedCount });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function getAllOrdersController(req, res) {
+  try {
+    // Check if user is admin
+    if (!req.userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+    const user = await UserModel.findById(req.userId);
+    if (!user || user.role !== 'ADMIN') {
+      return res.status(403).json({ success: false, message: 'Forbidden: Admins only' });
+    }
+    const orders = await OrderModel.find().sort({ createdAt: -1 })
+      .populate('userId', 'name email mobile')
+      .populate('delivery_address');
+    res.json({ success: true, data: orders });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function getTodayOrdersController(req, res) {
+  try {
+    if (!req.userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+    const user = await UserModel.findById(req.userId);
+    if (!user || user.role !== 'ADMIN') {
+      return res.status(403).json({ success: false, message: 'Forbidden: Admins only' });
+    }
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    const orders = await OrderModel.find({ createdAt: { $gte: start, $lte: end } })
+      .sort({ createdAt: -1 })
+      .populate('userId', 'name email mobile')
+      .populate('delivery_address');
+    res.json({ success: true, data: orders });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 }

@@ -44,6 +44,18 @@ const productSchema = new mongoose.Schema({
         type : Object,
         default : {}
     },
+    seller: {
+        type: String,
+        default: ''
+    },
+    sellerRating: {
+        type: Number,
+        default: 4.5
+    },
+    sellerRatingCount: {
+        type: Number,
+        default: 1
+    },
     publish : {
         type : Boolean,
         default : true

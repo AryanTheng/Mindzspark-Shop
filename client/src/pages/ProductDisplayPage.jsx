@@ -377,18 +377,16 @@ const ProductDisplayPage = () => {
 
         {/* Right: Product Info */}
         <div className="w-full max-w-xs sm:max-w-sm lg:max-w-2xl lg:w-full mx-auto p-2 sm:p-4 lg:pl-7 text-base sm:text-lg flex flex-col gap-4">
-          {/* Title */}
-          <h1 className='text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2'>
-            {data.name}
-            <button
-              className='text-lg sm:text-xl text-red-500 bg-white rounded-full p-1 shadow'
-              onClick={handleWishlist}
-              disabled={wishlistLoading}
-              aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-            >
-              {inWishlist ? <FaHeart /> : <FaRegHeart />}
-            </button>
-          </h1>
+          {/* Title and Seller Info */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+            <h1 className="text-2xl font-bold">{data.name}</h1>
+            <div className="flex items-center gap-2 text-sm text-gray-700">
+              <span>Seller:</span>
+              <span className="font-semibold">{data.seller || 'MISSPERFECT143'}</span>
+              <span className="ml-2 text-yellow-500 font-bold">{data.sellerRating || 4.5}★</span>
+              <span className="text-xs text-gray-500">({data.sellerRatingCount || 1} ratings)</span>
+            </div>
+          </div>
           {/* Ratings & Reviews Summary */}
           <div className='flex items-center gap-2 sm:gap-3 mb-2'>
             <span className='text-yellow-500 font-bold text-base sm:text-lg'>★★★★☆</span>

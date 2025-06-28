@@ -24,6 +24,9 @@ const UploadProduct = () => {
     discount: "",
     description: "",
     more_details: {},
+    seller: "",
+    sellerRating: 4.5,
+    sellerRatingCount: 1,
   });
 
   const [imageLoading, setImageLoading] = useState(false);
@@ -120,6 +123,9 @@ const UploadProduct = () => {
           discount: "",
           description: "",
           more_details: {},
+          seller: "",
+          sellerRating: 4.5,
+          sellerRatingCount: 1,
         });
       }
     } catch (error) {
@@ -312,6 +318,52 @@ const UploadProduct = () => {
               value={data.discount}
               onChange={handleChange}
               required
+              className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded'
+            />
+          </div>
+
+          {/* Seller */}
+          <div className='grid gap-1'>
+            <label htmlFor='seller' className='font-medium'>Seller</label>
+            <input
+              id='seller'
+              type='text'
+              placeholder='Enter seller name'
+              name='seller'
+              value={data.seller || ''}
+              onChange={handleChange}
+              className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded'
+            />
+          </div>
+
+          {/* Seller Rating */}
+          <div className='grid gap-1'>
+            <label htmlFor='sellerRating' className='font-medium'>Seller Rating</label>
+            <input
+              id='sellerRating'
+              type='number'
+              step='0.1'
+              min='0'
+              max='5'
+              placeholder='Enter seller rating (e.g. 4.5)'
+              name='sellerRating'
+              value={data.sellerRating}
+              onChange={handleChange}
+              className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded'
+            />
+          </div>
+
+          {/* Seller Rating Count */}
+          <div className='grid gap-1'>
+            <label htmlFor='sellerRatingCount' className='font-medium'>Seller Rating Count</label>
+            <input
+              id='sellerRatingCount'
+              type='number'
+              min='1'
+              placeholder='Number of ratings'
+              name='sellerRatingCount'
+              value={data.sellerRatingCount}
+              onChange={handleChange}
               className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded'
             />
           </div>
