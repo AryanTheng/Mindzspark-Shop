@@ -32,13 +32,6 @@
 - Node.js
 - MongoDB
 - Git
-
-### Steps
-
-```bash
-git clone https://github.com/Code-Sumba/Mindzspark-Shop.git
-cd Mindzspark-Shop
-npm install
 ![Screenshot 2025-07-05 085329](https://github.com/user-attachments/assets/12f0f06b-a8a2-4680-be41-9066d4239a5e)
 ![Screenshot 2025-07-05 085400](https://github.com/user-attachments/assets/49e20e12-a02e-4ab6-8d48-7bc783da9f3b)
 ![Screenshot 2025-07-05 085345](https://github.com/user-attachments/assets/6d481162-9949-459f-a5fc-95ed3c232e26)
@@ -48,6 +41,13 @@ npm install
 ![Screenshot 2025-07-05 085643](https://github.com/user-attachments/assets/690f9a56-6008-4305-9cd7-c55c24fd590a)
 ![Screenshot 2025-07-05 085658](https://github.com/user-attachments/assets/67f853ce-ccbe-4d3f-8e8f-9fd0f1a113c4)
 ![Screenshot 2025-07-05 085734](https://github.com/user-attachments/assets/6abcc046-3257-4651-b3c4-47cbd0dd0d12)
+
+### Steps
+
+```bash
+git clone https://github.com/Code-Sumba/Mindzspark-Shop.git
+cd Mindzspark-Shop
+npm install
 
 
 
