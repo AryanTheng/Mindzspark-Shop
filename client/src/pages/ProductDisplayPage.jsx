@@ -46,6 +46,10 @@ const ProductDisplayPage = () => {
   const [questionText, setQuestionText] = useState("");
   const [questionSubmitting, setQuestionSubmitting] = useState(false);
   const qaSectionRef = useRef();
+  const [notFound, setNotFound] = useState(false);
+  const [specOpen, setSpecOpen] = useState(false);
+  const [selectedOptions, setSelectedOptions] = useState({});
+  const [showSizeChart, setShowSizeChart] = useState(false);
 
   const fetchProductDetails = async()=>{
     try {
@@ -58,13 +62,22 @@ const ProductDisplayPage = () => {
 
         const { data : responseData } = response
 
-        if(responseData.success){
+        if(responseData.success && responseData.data && responseData.data._id){
+          // TEMP: Force options for testing
+          // responseData.data.options = [
+          //   { name: "Size", values: ["S", "M", "L"] },
+          //   { name: "Color", values: ["Red", "Blue"] }
+          // ];
           setData(responseData.data)
+          setNotFound(false)
+        } else {
+          setNotFound(true)
         }
     } catch (error) {
       if (error?.response?.data?.message === 'Provide token') {
         setShowAuthPopup(true);
       }
+      setNotFound(true);
       AxiosToastError(error)
     }finally{
       setLoading(false)
@@ -326,6 +339,9 @@ const ProductDisplayPage = () => {
     }
   };
 
+  // After fetching product details and before rendering, ensure options is always present for demo
+  // Remove the forced default options array. Only show options if present in data.
+
   return (
     <>
       {showAuthPopup && (
@@ -336,6 +352,14 @@ const ProductDisplayPage = () => {
           onClose={() => setShowAuthPopup(false)}
         />
       )}
+      {notFound ? (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+          <span className="text-6xl mb-4">🛒</span>
+          <h2 className="text-2xl font-bold mb-2">Product not found</h2>
+          <p className="text-gray-600 mb-4">The product you are looking for does not exist or has been removed.</p>
+          <button onClick={() => navigate(-1)} className="px-4 py-2 bg-green-600 text-white rounded">Go Back</button>
+        </div>
+      ) : (
       <section className="container mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Images and Gallery */}
         <div className="w-full max-w-xs sm:max-w-sm lg:max-w-md lg:w-full mx-auto lg:h-[80vh] lg:overflow-y-auto lg:sticky lg:top-24">
@@ -376,16 +400,10 @@ const ProductDisplayPage = () => {
         </div>
 
         {/* Right: Product Info */}
-        <div className="w-full max-w-xs sm:max-w-sm lg:max-w-2xl lg:w-full mx-auto p-2 sm:p-4 lg:pl-7 text-base sm:text-lg flex flex-col gap-4">
+        <div className="w-full max-w-xs sm:max-w-sm lg:max-w-2xl lg:w-full mx-auto mt-8 p-2 sm:p-4 lg:pl-7 text-base sm:text-lg flex flex-col gap-4">
           {/* Title and Seller Info */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-            <h1 className="text-2xl font-bold">{data.name}</h1>
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <span>Seller:</span>
-              <span className="font-semibold">{data.seller || 'MISSPERFECT143'}</span>
-              <span className="ml-2 text-yellow-500 font-bold">{data.sellerRating || 4.5}★</span>
-              <span className="text-xs text-gray-500">({data.sellerRatingCount || 1} ratings)</span>
-            </div>
+          <div className="mb-2 mt-4">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold break-words leading-tight">{data.name}</h1>
           </div>
           {/* Ratings & Reviews Summary */}
           <div className='flex items-center gap-2 sm:gap-3 mb-2'>
@@ -404,8 +422,93 @@ const ProductDisplayPage = () => {
               <span className='ml-2 text-green-600 font-semibold text-sm sm:text-base'>{data.discount}% OFF</span>
             )}
           </div>
+          {/* Debug: log product options */}
+          {console.log('Product options:', data.options)}
+          {/* Product Options Selection (Flipkart style) */}
+          {Array.isArray(data.options) && data.options.length > 0 && (
+            <div className="mb-2">
+              {data.options.map((opt, idx) => (
+                <div key={opt.name} className="mb-4 flex items-center gap-4 flex-wrap">
+                  <div className="font-semibold mb-1 min-w-[80px]">{opt.name}{opt.name.toLowerCase().includes('size') && ':'}</div>
+                  {/* Color as image swatches if possible */}
+                  {opt.name.toLowerCase() === 'color' && opt.values && opt.values.length > 0 && typeof opt.values[0] === 'object' && opt.values[0].image ? (
+                    <div className="flex gap-3">
+                      {opt.values.map(val => (
+                        <div
+                          key={val.label}
+                          className={`w-12 h-12 rounded border-2 cursor-pointer flex items-center justify-center ${selectedOptions[opt.name] === val.label ? 'border-blue-600' : 'border-gray-300'}`}
+                          onClick={() => setSelectedOptions(sel => ({ ...sel, [opt.name]: val.label }))}
+                          title={val.label}
+                        >
+                          <img src={val.image} alt={val.label} className="w-10 h-10 object-cover rounded" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : opt.name.toLowerCase() === 'color' ? (
+                    <div className="flex gap-3">
+                      {opt.values.map(val => (
+                        <div
+                          key={typeof val === 'object' ? val.label : val}
+                          className={`w-12 h-12 rounded border-2 cursor-pointer flex items-center justify-center ${selectedOptions[opt.name] === (typeof val === 'object' ? val.label : val) ? 'border-blue-600' : 'border-gray-300'}`}
+                          onClick={() => setSelectedOptions(sel => ({ ...sel, [opt.name]: typeof val === 'object' ? val.label : val }))}
+                          style={{ background: typeof val === 'string' ? val.toLowerCase() : undefined }}
+                          title={typeof val === 'object' ? val.label : val}
+                        >
+                          {typeof val === 'object' ? val.label : val}
+                        </div>
+                      ))}
+                    </div>
+                  ) : opt.name.toLowerCase().includes('size') ? (
+                    <div className="flex gap-2 items-center">
+                      {opt.values.map(val => (
+                        <button
+                          key={val}
+                          type="button"
+                          className={`w-12 h-12 rounded border text-lg font-semibold ${selectedOptions[opt.name] === val ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-gray-700 border-gray-300'} hover:bg-blue-100`}
+                          onClick={() => setSelectedOptions(sel => ({ ...sel, [opt.name]: val }))}
+                        >
+                          {val}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        className="ml-2 text-blue-600 underline text-sm"
+                        onClick={() => setShowSizeChart(true)}
+                      >
+                        Size Chart
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2 flex-wrap">
+                      {opt.values.map(val => (
+                        <button
+                          key={typeof val === 'object' ? val.label : val}
+                          type="button"
+                          className={`px-3 py-1 rounded border ${selectedOptions[opt.name] === (typeof val === 'object' ? val.label : val) ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-gray-700 border-gray-300'} hover:bg-blue-100`}
+                          onClick={() => setSelectedOptions(sel => ({ ...sel, [opt.name]: typeof val === 'object' ? val.label : val }))}
+                        >
+                          {typeof val === 'object' ? val.label : val}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+              {/* Size Chart Modal */}
+              {showSizeChart && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
+                  <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+                    <button className="absolute top-2 right-2 text-xl" onClick={() => setShowSizeChart(false)}>&times;</button>
+                    <h3 className="text-lg font-bold mb-4">Size Chart</h3>
+                    {/* Replace the src below with your actual size chart image or table */}
+                    <img src="https://cdn.fcglcdn.com/brainbees/images/sizeChart_v2.jpg" alt="Size Chart" className="w-full h-auto rounded" />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           {/* Description with Read More */}
-          <div className='mb-2 text-sm sm:text-base'>
+           <div className='mb-2 text-sm sm:text-base'>
             <span className='font-semibold'>Description: </span>
             {showFullDescription ? data.description : (data.description?.slice(0, 120) || '')}
             {data.description && data.description.length > 120 && (
@@ -414,17 +517,7 @@ const ProductDisplayPage = () => {
               </button>
             )}
           </div>
-          {/* Additional Information (Read More) */}
-          {showFullDescription && data.more_details && (
-            <div className='mb-2 text-sm sm:text-base'>
-              <span className='font-semibold'>Additional Information:</span>
-              <ul className='list-disc ml-6'>
-                {Object.entries(data.more_details).map(([key, value]) => (
-                  <li key={key}><span className='font-medium'>{key}:</span> {value}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+          
           {/* Add to Cart/Buy Now */}
           {data.stock === 0 ? (
             <p className='text-lg text-red-500 my-2 w-full'>Out of Stock</p>
@@ -434,6 +527,13 @@ const ProductDisplayPage = () => {
               <button onClick={handleBuyNow} className='flex-1 bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600'>Buy Now</button>
             </div>
           )}
+          {/* Seller Info at Bottom */}
+          <div className="flex items-center gap-2 text-sm text-gray-700 mt-4">
+            <span>Seller:</span>
+            <span className="font-semibold">{data.seller || 'MISSPERFECT143'}</span>
+            <span className="ml-2 text-yellow-500 font-bold">{data.sellerRating || 4.5}★</span>
+            <span className="text-xs text-gray-500">({data.sellerRatingCount || 1} ratings)</span>
+          </div>
           <Divider />
           {/* Frequently Bought Together */}
           <div className='my-6'>
@@ -451,6 +551,28 @@ const ProductDisplayPage = () => {
               )}
             </div>
           </div>
+          
+          {/* Specifications Table - Collapsible with + icon */}
+          {data.more_details && (
+            <div className='mb-2 text-sm sm:text-base'>
+              <span className='font-semibold block mb-2 flex items-center gap-2 cursor-pointer select-none' onClick={() => setSpecOpen(v => !v)}>
+                Specifications:
+                <span className={specOpen ? 'text-red-600 ml-20 text-lg' : 'text-green-600 ml-20 text-lg'}>{specOpen ? '-' : '+'}</span>
+              </span>
+              {specOpen && (
+                <table className="min-w-full border text-left text-xs sm:text-sm animate-fade-in">
+                  <tbody>
+                    {Object.entries(data.more_details).map(([key, value]) => (
+                      <tr key={key} className="border-b">
+                        <td className="py-1 px-2 font-medium w-1/3 bg-gray-50">{key}</td>
+                        <td className="py-1 px-2">{value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
           <Divider />
           {/* Ratings & Reviews Section */}
           <div className='my-8'>
@@ -631,6 +753,7 @@ const ProductDisplayPage = () => {
           </div>
         </div>
       </section>
+      )}
     </>
   )
 }

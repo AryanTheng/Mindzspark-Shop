@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { FaCloudUploadAlt } from "react-icons/fa";
 import uploadImage from '../utils/UploadImage';
 import Loading from '../components/Loading';
@@ -37,6 +37,15 @@ const UploadProduct = () => {
   const allSubCategory = useSelector(state => state.product.allSubCategory);
   const [openAddField, setOpenAddField] = useState(false);
   const [fieldName, setFieldName] = useState("");
+  const [options, setOptions] = useState([]);
+  const [optionName, setOptionName] = useState('');
+  const [optionValue, setOptionValue] = useState('');
+  const [selectedOptionIdx, setSelectedOptionIdx] = useState(null);
+
+  const keyInputRef = useRef();
+  const valueInputRef = useRef();
+  const [specKey, setSpecKey] = useState('');
+  const [specValue, setSpecValue] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -99,14 +108,46 @@ const UploadProduct = () => {
     setOpenAddField(false);
   };
 
+  // Add option name
+  const handleAddOption = () => {
+    if (!optionName.trim()) return;
+    setOptions([...options, { name: optionName.trim(), values: [] }]);
+    setOptionName('');
+  };
+  // Add value to selected option
+  const handleAddOptionValue = () => {
+    if (selectedOptionIdx === null || !optionValue.trim()) return;
+    setOptions(opts => opts.map((opt, idx) => idx === selectedOptionIdx ? { ...opt, values: [...opt.values, optionValue.trim()] } : opt));
+    setOptionValue('');
+  };
+  // Remove option
+  const handleRemoveOption = idx => setOptions(opts => opts.filter((_, i) => i !== idx));
+  // Remove value from option
+  const handleRemoveOptionValue = (optIdx, valIdx) => setOptions(opts => opts.map((opt, i) => i === optIdx ? { ...opt, values: opt.values.filter((_, vi) => vi !== valIdx) } : opt));
+
+  const handleAddSpecification = () => {
+    if (!specKey.trim() || !specValue.trim()) return;
+    setData(prev => ({
+      ...prev,
+      more_details: {
+        ...prev.more_details,
+        [specKey.trim()]: specValue.trim()
+      }
+    }));
+    setSpecKey('');
+    setSpecValue('');
+    setTimeout(() => keyInputRef.current && keyInputRef.current.focus(), 0);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("data", data);
 
     try {
+      const submitData = { ...data, options };
       const response = await Axios({
         ...SummaryApi.createProduct,
-        data: data
+        data: submitData
       });
       const { data: responseData } = response;
 
@@ -127,6 +168,7 @@ const UploadProduct = () => {
           sellerRating: 4.5,
           sellerRatingCount: 1,
         });
+        setOptions([]);
       }
     } catch (error) {
       AxiosToastError(error);
@@ -368,29 +410,132 @@ const UploadProduct = () => {
             />
           </div>
 
-          {/* More Fields */}
-          {Object.keys(data.more_details).map((k, index) => (
-            <div key={k + index} className='grid gap-1'>
-              <label htmlFor={k} className='font-medium'>{k}</label>
-              <input
-                id={k}
-                type='text'
-                value={data.more_details[k]}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setData(prev => ({
-                    ...prev,
-                    more_details: {
-                      ...prev.more_details,
-                      [k]: value
-                    }
-                  }));
-                }}
-                required
-                className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded'
-              />
+          {/* Specifications Table - Creative UI */}
+          <div className="grid gap-1">
+            <label className="font-medium">Specifications</label>
+            <div className="overflow-x-auto">
+              <table className="min-w-full border text-left text-xs sm:text-sm bg-white rounded-lg shadow">
+                <thead>
+                  <tr className="bg-gradient-to-r from-blue-100 to-blue-200">
+                    <th className="py-2 px-2 border-b font-semibold flex items-center gap-1">
+                      Name
+                      <span className="ml-1 text-gray-400" title="Specification Name">🛈</span>
+                    </th>
+                    <th className="py-2 px-2 border-b font-semibold flex items-center gap-1">
+                      Value
+                      <span className="ml-1 text-gray-400" title="Specification Value">🛈</span>
+                    </th>
+                    <th className="py-2 px-2 border-b font-semibold">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Row for adding new spec */}
+                  <tr>
+                    <td className="py-1 px-2 border-b">
+                      <input
+                        ref={keyInputRef}
+                        type="text"
+                        value={specKey}
+                        onChange={e => setSpecKey(e.target.value)}
+                        className="bg-white p-1 border rounded w-full focus:ring-2 focus:ring-blue-200 transition"
+                        placeholder="e.g. Color"
+                        title="Specification Name"
+                      />
+                    </td>
+                    <td className="py-1 px-2 border-b">
+                      <input
+                        ref={valueInputRef}
+                        type="text"
+                        value={specValue}
+                        onChange={e => setSpecValue(e.target.value)}
+                        className="bg-white p-1 border rounded w-full focus:ring-2 focus:ring-blue-200 transition"
+                        placeholder="e.g. Red"
+                        title="Specification Value"
+                      />
+                    </td>
+                    <td className="py-1 px-2 border-b text-center">
+                      <button
+                        type="button"
+                        className="text-green-600 hover:text-green-800 font-bold px-2 transition"
+                        title="Add Specification"
+                        onClick={handleAddSpecification}
+                      >
+                        <span role="img" aria-label="Add">➕</span>
+                      </button>
+                    </td>
+                  </tr>
+                  {/* Existing specs */}
+                  {Object.entries(data.more_details || {}).map(([k, v], idx) => (
+                    <tr key={k + idx} className={idx % 2 === 0 ? 'bg-blue-50' : 'bg-white'}>
+                      <td className="py-1 px-2 border-b">
+                        {k}
+                      </td>
+                      <td className="py-1 px-2 border-b">
+                        {v}
+                      </td>
+                      <td className="py-1 px-2 border-b text-center">
+                        <button
+                          type="button"
+                          className="text-red-600 hover:text-red-800 font-bold px-2 transition"
+                          title="Delete Specification"
+                          onClick={() => {
+                            setData(prev => {
+                              const newDetails = { ...prev.more_details };
+                              delete newDetails[k];
+                              return { ...prev, more_details: newDetails };
+                            });
+                          }}
+                        >
+                          <span role="img" aria-label="Delete">🗑️</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ))}
+          </div>
+
+          {/* Product Options Section */}
+          <div className="grid gap-1">
+            <label className="font-medium">Product Options (e.g., Size, RAM, Color)</label>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                placeholder="Option Name (e.g., Size, RAM)"
+                value={optionName}
+                onChange={e => setOptionName(e.target.value)}
+                className="bg-blue-50 p-1 border rounded w-40"
+              />
+              <button type="button" className="bg-green-600 text-white px-2 rounded" onClick={handleAddOption}>Add Option</button>
+            </div>
+            {options.map((opt, idx) => (
+              <div key={idx} className="mb-2 border rounded p-2 bg-blue-50">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-semibold">{opt.name}</span>
+                  <button type="button" className="text-red-600 text-xs" onClick={() => handleRemoveOption(idx)}>Remove</button>
+                </div>
+                <div className="flex gap-2 mb-1">
+                  <input
+                    type="text"
+                    placeholder={`Add value to ${opt.name}`}
+                    value={selectedOptionIdx === idx ? optionValue : ''}
+                    onChange={e => { setSelectedOptionIdx(idx); setOptionValue(e.target.value); }}
+                    className="bg-white p-1 border rounded w-32"
+                  />
+                  <button type="button" className="bg-blue-600 text-white px-2 rounded" onClick={handleAddOptionValue}>Add Value</button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {opt.values.map((val, vIdx) => (
+                    <span key={vIdx} className="bg-white border px-2 py-1 rounded flex items-center gap-1">
+                      {val}
+                      <button type="button" className="text-xs text-red-500" onClick={() => handleRemoveOptionValue(idx, vIdx)}>&times;</button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
 
           <div onClick={() => setOpenAddField(true)} className='hover:bg-primary-200 bg-white py-1 px-3 w-32 text-center font-semibold border border-primary-200 hover:text-neutral-900 cursor-pointer rounded'>
             Add Fields

@@ -1,5 +1,7 @@
 import ProductModel from "../models/product.model.js";
 import mongoose from 'mongoose';
+import CategoryModel from '../models/category.model.js';
+import SubCategoryModel from '../models/subCategory.model.js';
 
 export const createProductController = async(request,response)=>{
     try {
@@ -374,3 +376,54 @@ export async function getAllProducts(req, res) {
         });
     }
 }
+
+export const bulkUploadProducts = async (req, res) => {
+  try {
+    const { products } = req.body;
+    if (!Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ success: false, message: 'No products provided', error: true });
+    }
+    const created = [];
+    const errors = [];
+    for (const prod of products) {
+      try {
+        // CATEGORY
+        let categoryIds = [];
+        if (Array.isArray(prod.category)) {
+          for (const catName of prod.category) {
+            let cat = await CategoryModel.findOne({ name: catName });
+            if (!cat) {
+              cat = await CategoryModel.create({ name: catName, image: 'https://via.placeholder.com/150' });
+            }
+            categoryIds.push(cat._id);
+          }
+        }
+        // SUBCATEGORY
+        let subCategoryIds = [];
+        if (Array.isArray(prod.subCategory)) {
+          for (const subCatName of prod.subCategory) {
+            let subCat = await SubCategoryModel.findOne({ name: subCatName });
+            if (!subCat) {
+              // Link to first category if available
+              subCat = await SubCategoryModel.create({ name: subCatName, image: 'https://via.placeholder.com/150', category: categoryIds.length ? [categoryIds[0]] : [] });
+            }
+            subCategoryIds.push(subCat._id);
+          }
+        }
+        // PRODUCT
+        const product = new ProductModel({
+          ...prod,
+          category: categoryIds,
+          subCategory: subCategoryIds
+        });
+        await product.save();
+        created.push(product);
+      } catch (err) {
+        errors.push({ product: prod.name, error: err.message });
+      }
+    }
+    res.json({ success: true, createdCount: created.length, errorCount: errors.length, created, errors });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message || error, error: true });
+  }
+};

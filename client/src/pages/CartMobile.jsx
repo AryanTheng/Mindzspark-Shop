@@ -172,7 +172,7 @@ const CartMobile = () => {
                   <div key={item._id} className="flex flex-col gap-2 border-b py-4 last:border-b-0">
                     <div className="flex flex-row items-start gap-4 w-full">
                       {/* Product Image and Details as Link */}
-                      <Link to={`/product/${item.productId?.name?.replace(/\s+/g, '-')}-${item.productId?._id}`} className="flex items-center gap-4 flex-1 min-w-0">
+                      <Link to={`/product/${encodeURIComponent(item.productId?.name)}-${item.productId?._id}`} className="flex items-center gap-4 flex-1 min-w-0">
                         <img src={item.productId?.image?.[0]} alt={item.productId?.name} className="w-24 h-24 object-contain border rounded" />
                         <div className="min-w-0">
                           <div className="font-medium text-base text-gray-800 truncate mb-0.5">{item.productId?.name}</div>
@@ -225,7 +225,7 @@ const CartMobile = () => {
             ) : (
               savedForLater.map((item) => (
                 <div key={item._id} className="flex items-center gap-4 border-b py-4 last:border-b-0">
-                  <Link to={`/product/${item.productId?.name?.replace(/\s+/g, '-')}-${item.productId?._id}`} className="flex items-center gap-4 flex-1 min-w-0">
+                  <Link to={`/product/${encodeURIComponent(item.productId?.name)}-${item.productId?._id}`} className="flex items-center gap-4 flex-1 min-w-0">
                     <img src={item.productId?.image?.[0]} alt={item.productId?.name} className="w-20 h-20 object-contain border rounded" />
                     <div className="min-w-0">
                       <div className="font-medium text-sm truncate">{item.productId?.name}</div>

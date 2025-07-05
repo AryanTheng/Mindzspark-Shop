@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FaCloudUploadAlt } from "react-icons/fa";
 import uploadImage from '../utils/UploadImage';
 import Loading from '../components/Loading';
@@ -11,7 +11,6 @@ import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
 import AxiosToastError from '../utils/AxiosToastError';
 import successAlert from '../utils/SuccessAlert';
-import { useEffect } from 'react';
 
 const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
   const [data, setData] = useState({
@@ -36,6 +35,28 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
 
   const [openAddField, setOpenAddField] = useState(false)
   const [fieldName, setFieldName] = useState("")
+
+  const [options, setOptions] = useState(propsData.options || []);
+  const [optionName, setOptionName] = useState('');
+  const [optionValue, setOptionValue] = useState('');
+  const [selectedOptionIdx, setSelectedOptionIdx] = useState(null);
+
+  // Add option name
+  const handleAddOption = () => {
+    if (!optionName.trim()) return;
+    setOptions([...options, { name: optionName.trim(), values: [] }]);
+    setOptionName('');
+  };
+  // Add value to selected option
+  const handleAddOptionValue = () => {
+    if (selectedOptionIdx === null || !optionValue.trim()) return;
+    setOptions(opts => opts.map((opt, idx) => idx === selectedOptionIdx ? { ...opt, values: [...opt.values, optionValue.trim()] } : opt));
+    setOptionValue('');
+  };
+  // Remove option
+  const handleRemoveOption = idx => setOptions(opts => opts.filter((_, i) => i !== idx));
+  // Remove value from option
+  const handleRemoveOptionValue = (optIdx, valIdx) => setOptions(opts => opts.map((opt, i) => i === optIdx ? { ...opt, values: opt.values.filter((_, vi) => vi !== valIdx) } : opt));
 
 
   const handleChange = (e) => {
@@ -115,9 +136,10 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
     console.log("data", data)
 
     try {
+      const submitData = { ...data, options };
       const response = await Axios({
         ...SummaryApi.updateProductDetails,
-        data: data
+        data: submitData
       })
       const { data: responseData } = response
 
@@ -139,7 +161,7 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
           description: "",
           more_details: {},
         })
-
+        setOptions([]);
       }
     } catch (error) {
       AxiosToastError(error)
@@ -379,35 +401,135 @@ const EditProductAdmin = ({ close ,data : propsData,fetchProductData}) => {
               </div>
 
 
-              {/**add more field**/}
-              {
-                Object?.keys(data?.more_details)?.map((k, index) => {
-                  return (
-                    <div className='grid gap-1'>
-                      <label htmlFor={k} className='font-medium'>{k}</label>
-                      <input
-                        id={k}
-                        type='text'
-                        value={data?.more_details[k]}
-                        onChange={(e) => {
-                          const value = e.target.value
-                          setData((preve) => {
-                            return {
-                              ...preve,
-                              more_details: {
-                                ...preve.more_details,
-                                [k]: value
-                              }
-                            }
-                          })
-                        }}
-                        required
-                        className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded'
-                      />
+              {/* Specifications Table */}
+              <div className="grid gap-1">
+                <label className="font-medium">Specifications</label>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full border text-left text-xs sm:text-sm bg-white">
+                    <thead>
+                      <tr>
+                        <th className="py-2 px-2 border-b font-semibold">Name</th>
+                        <th className="py-2 px-2 border-b font-semibold">Value</th>
+                        <th className="py-2 px-2 border-b font-semibold">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(data.more_details || {}).map(([k, v], idx) => (
+                        <tr key={k + idx}>
+                          <td className="py-1 px-2 border-b">
+                            <input
+                              type="text"
+                              value={k}
+                              onChange={e => {
+                                const newKey = e.target.value;
+                                setData(prev => {
+                                  const newDetails = { ...prev.more_details };
+                                  const value = newDetails[k];
+                                  delete newDetails[k];
+                                  newDetails[newKey] = value;
+                                  return { ...prev, more_details: newDetails };
+                                });
+                              }}
+                              className="bg-blue-50 p-1 border rounded w-full"
+                              required
+                            />
+                          </td>
+                          <td className="py-1 px-2 border-b">
+                            <input
+                              type="text"
+                              value={v}
+                              onChange={e => {
+                                const value = e.target.value;
+                                setData(prev => ({
+                                  ...prev,
+                                  more_details: { ...prev.more_details, [k]: value }
+                                }));
+                              }}
+                              className="bg-blue-50 p-1 border rounded w-full"
+                              required
+                            />
+                          </td>
+                          <td className="py-1 px-2 border-b">
+                            <button
+                              type="button"
+                              className="text-red-600 font-bold px-2"
+                              onClick={() => {
+                                setData(prev => {
+                                  const newDetails = { ...prev.more_details };
+                                  delete newDetails[k];
+                                  return { ...prev, more_details: newDetails };
+                                });
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <button
+                  type="button"
+                  className="mt-2 bg-primary-100 hover:bg-primary-200 py-1 px-3 rounded font-semibold text-xs sm:text-sm"
+                  onClick={() => {
+                    // Add a new empty row with a unique key
+                    let i = 1;
+                    let newKey = `Specification ${i}`;
+                    while (data.more_details && data.more_details[newKey]) {
+                      i++;
+                      newKey = `Specification ${i}`;
+                    }
+                    setData(prev => ({
+                      ...prev,
+                      more_details: { ...prev.more_details, [newKey]: '' }
+                    }));
+                  }}
+                >
+                  + Add Specification
+                </button>
+              </div>
+
+              {/* Product Options Section */}
+              <div className="grid gap-1">
+                <label className="font-medium">Product Options (e.g., Size, RAM, Color)</label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    placeholder="Option Name (e.g., Size, RAM)"
+                    value={optionName}
+                    onChange={e => setOptionName(e.target.value)}
+                    className="bg-blue-50 p-1 border rounded w-40"
+                  />
+                  <button type="button" className="bg-green-600 text-white px-2 rounded" onClick={handleAddOption}>Add Option</button>
+                </div>
+                {options.map((opt, idx) => (
+                  <div key={idx} className="mb-2 border rounded p-2 bg-blue-50">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold">{opt.name}</span>
+                      <button type="button" className="text-red-600 text-xs" onClick={() => handleRemoveOption(idx)}>Remove</button>
                     </div>
-                  )
-                })
-              }
+                    <div className="flex gap-2 mb-1">
+                      <input
+                        type="text"
+                        placeholder={`Add value to ${opt.name}`}
+                        value={selectedOptionIdx === idx ? optionValue : ''}
+                        onChange={e => { setSelectedOptionIdx(idx); setOptionValue(e.target.value); }}
+                        className="bg-white p-1 border rounded w-32"
+                      />
+                      <button type="button" className="bg-blue-600 text-white px-2 rounded" onClick={handleAddOptionValue}>Add Value</button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {opt.values.map((val, vIdx) => (
+                        <span key={vIdx} className="bg-white border px-2 py-1 rounded flex items-center gap-1">
+                          {val}
+                          <button type="button" className="text-xs text-red-500" onClick={() => handleRemoveOptionValue(idx, vIdx)}>&times;</button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
 
               <div onClick={() => setOpenAddField(true)} className=' hover:bg-primary-200 bg-white py-1 px-3 w-32 text-center font-semibold border border-primary-200 hover:text-neutral-900 cursor-pointer rounded'>
                 Add Fields
