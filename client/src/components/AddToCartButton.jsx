@@ -19,7 +19,9 @@ const AddToCartButton = ({ data, buttonClassName = '' }) => {
     const [cartItemDetails,setCartItemsDetails] = useState()
     const [showAuthPopup, setShowAuthPopup] = useState(false);
     const navigate = useNavigate();
-
+    
+    console.log("AddToCartButton data", data);
+    console.log("AddToCartButton id", data?._id);
     const handleADDTocart = async (e) => {
         e.preventDefault()
         e.stopPropagation()
@@ -61,10 +63,10 @@ const AddToCartButton = ({ data, buttonClassName = '' }) => {
 
     //checking this item in cart or not
     useEffect(() => {
-        const checkingitem = cartItem.some(item => item.productId._id === data._id)
+        const checkingitem = cartItem.some(item => item?.productId?._id === data._id)
         setIsAvailableCart(checkingitem)
 
-        const product = cartItem.find(item => item.productId._id === data._id)
+        const product = cartItem.find(item => item?.productId?._id === data._id)
         setQty(product?.quantity)
         setCartItemsDetails(product)
     }, [data, cartItem])

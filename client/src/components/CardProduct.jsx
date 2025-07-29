@@ -20,6 +20,7 @@ const CardProduct = ({data}) => {
     const [wishlistLoading, setWishlistLoading] = useState(false);
     const [inWishlist, setInWishlist] = useState(false);
 
+    console.log("CardProduct data", data);
     // Check if product is in wishlist on mount (optional: can be improved with global state)
     useEffect(() => {
       // Optionally fetch wishlist status from API or props

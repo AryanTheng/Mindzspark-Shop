@@ -77,9 +77,16 @@ const CartMobile = () => {
   };
 
   // Remove from Cart
-  const handleRemoveFromCart = (itemId) => {
+  const handleRemoveFromCart = async (itemId) => {
     const newCart = cart.filter(i => i._id !== itemId);
     dispatch(handleAddItemCart(newCart));
+    const res = await Axios({
+      ...SummaryApi.deleteCartItem,
+      data: { _id: itemId,
+        userId: user._id || null
+       },
+    })
+    console.log("Remove item response", res.data);
   };
 
   // Remove item from 'Save for Later'
@@ -89,6 +96,7 @@ const CartMobile = () => {
         ...SummaryApi.removeFromSaveForLater,
         data: { cartProductId },
       });
+      console.log("Remove prodct", cartProductId, res.data);
       if (res.data.success) {
         setSavedForLater((prev) => prev.filter((item) => item._id !== cartProductId));
         toast.success('Removed from save for later');
